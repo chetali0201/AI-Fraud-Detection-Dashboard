@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AEGIS — AI Fraud Detection Platform</title>
+<link rel="stylesheet" href="style.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  LOADING SCREEN                                           -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="loadingScreen">
+  <div class="loader-content">
+    <div class="loader-logo">
+      <span class="loader-icon"><i class="fa-solid fa-shield-halved"></i></span>
+      <span class="loader-brand">AEGIS</span>
+    </div>
+    <div class="loader-bar-wrap"><div class="loader-bar" id="loaderBar"></div></div>
+    <p class="loader-status" id="loaderStatus">Initializing secure environment...</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  LOGIN PAGE                                               -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="loginPage" class="hidden">
+  <canvas id="loginParticles"></canvas>
+  <div class="login-card">
+    <div class="login-brand">
+      <i class="fa-solid fa-shield-halved login-brand-icon"></i>
+      <div>
+        <span class="login-brand-name">AEGIS</span>
+        <span class="login-brand-sub">Fraud Intelligence Platform</span>
+      </div>
+    </div>
+    <div class="login-device-label" id="deviceLabel"><i class="fa-solid fa-laptop"></i> <span id="deviceText">Detecting device...</span></div>
+    <div class="login-field">
+      <label>Email Address</label>
+      <div class="input-wrap"><i class="fa-solid fa-envelope"></i><input type="email" id="loginEmail" placeholder="analyst@aegis.ai" autocomplete="off"/></div>
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <div class="input-wrap">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="loginPassword" placeholder="••••••••••"/>
+        <button class="toggle-pw" id="togglePw" tabindex="-1"><i class="fa-solid fa-eye" id="eyeIcon"></i></button>
+      </div>
+    </div>
+    <div class="login-row">
+      <label class="checkbox-label"><input type="checkbox" id="rememberMe"/> Remember me</label>
+      <a href="#" class="forgot-link" id="forgotLink">Forgot password?</a>
+    </div>
+    <div class="login-fail-banner hidden" id="failBanner"><i class="fa-solid fa-triangle-exclamation"></i> <span id="failMsg"></span></div>
+    <button class="login-btn" id="loginBtn"><span class="btn-text">AUTHENTICATE</span><span class="btn-loader hidden" id="btnLoader"><i class="fa-solid fa-circle-notch fa-spin"></i></span></button>
+    <div class="login-footer">Secured by AES-256 · Zero Trust Architecture</div>
+  </div>
+
+  <!-- OTP Modal -->
+  <div class="modal-overlay hidden" id="otpOverlay">
+    <div class="modal-card">
+      <div class="modal-icon"><i class="fa-solid fa-mobile-screen-button"></i></div>
+      <h3>Two-Factor Verification</h3>
+      <p>Enter the 6-digit OTP sent to your registered device</p>
+      <div class="otp-inputs">
+        <input type="text" maxlength="1" class="otp-box" data-index="0"/>
+        <input type="text" maxlength="1" class="otp-box" data-index="1"/>
+        <input type="text" maxlength="1" class="otp-box" data-index="2"/>
+        <input type="text" maxlength="1" class="otp-box" data-index="3"/>
+        <input type="text" maxlength="1" class="otp-box" data-index="4"/>
+        <input type="text" maxlength="1" class="otp-box" data-index="5"/>
+      </div>
+      <div class="otp-hint">Demo: enter any 6 digits</div>
+      <button class="login-btn" id="otpVerifyBtn">VERIFY OTP</button>
+      <button class="link-btn" id="otpResend">Resend OTP <span id="resendTimer">(30s)</span></button>
+    </div>
+  </div>
+
+  <!-- Suspicious Login Modal -->
+  <div class="modal-overlay hidden" id="suspiciousOverlay">
+    <div class="modal-card warn-card">
+      <div class="modal-icon warn-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <h3>Suspicious Login Detected</h3>
+      <p>We detected a login attempt from an unrecognized device/location.</p>
+      <div class="warn-detail"><i class="fa-solid fa-location-dot"></i> IP: 185.220.101.47 · Lagos, NG</div>
+      <div class="warn-detail"><i class="fa-solid fa-desktop"></i> Device: Unknown Windows PC</div>
+      <button class="login-btn" id="dismissSuspicious">Continue Anyway</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  DASHBOARD                                                -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="dashboard" class="hidden">
+
+  <!-- Particles canvas background -->
+  <canvas id="dashParticles"></canvas>
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <i class="fa-solid fa-shield-halved"></i>
+      <span>AEGIS</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-section="overview"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a>
+      <a href="#" class="nav-item" data-section="transactions"><i class="fa-solid fa-arrow-right-arrow-left"></i><span>Transactions</span></a>
+      <a href="#" class="nav-item" data-section="alerts"><i class="fa-solid fa-bell"></i><span>Fraud Alerts</span><span class="nav-badge" id="alertBadge">0</span></a>
+      <a href="#" class="nav-item" data-section="analytics"><i class="fa-solid fa-chart-line"></i><span>Analytics</span></a>
+      <a href="#" class="nav-item" data-section="users"><i class="fa-solid fa-users"></i><span>Users</span></a>
+      <a href="#" class="nav-item" data-section="reports"><i class="fa-solid fa-file-chart-column"></i><span>Reports</span></a>
+      <a href="#" class="nav-item" data-section="settings"><i class="fa-solid fa-sliders"></i><span>Settings</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar">SA</div>
+        <div class="user-info"><span class="user-name">Sarah Analyst</span><span class="user-role">Senior Fraud Analyst</span></div>
+        <button class="logout-btn" id="logoutBtn" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN AREA ── -->
+  <div class="main-area" id="mainArea">
+
+    <!-- ── TOP NAVBAR ── -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+        <div class="breadcrumb" id="breadcrumb">Dashboard <span>/ Overview</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="globalSearch" placeholder="Search transactions, alerts…"/></div>
+        <div class="topbar-live"><span class="live-dot"></span>LIVE</div>
+        <button class="topbar-btn theme-toggle" id="themeToggle" title="Toggle theme"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
+        <button class="topbar-btn" id="notifBtn" title="Notifications"><i class="fa-solid fa-bell"></i><span class="notif-count" id="notifCount">3</span></button>
+        <div class="topbar-avatar">SA</div>
+      </div>
+    </header>
+
+    <!-- ── NOTIFICATION DROPDOWN ── -->
+    <div class="notif-panel hidden" id="notifPanel">
+      <div class="notif-header"><span>Notifications</span><button id="clearNotif">Clear all</button></div>
+      <div class="notif-list" id="notifList"></div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!--  SECTION: OVERVIEW                                    -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <section class="section active" id="section-overview">
+
+      <!-- KPI CARDS -->
+      <div class="kpi-grid">
+        <div class="kpi-card" data-color="cyan">
+          <div class="kpi-icon"><i class="fa-solid fa-arrow-right-arrow-left"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Total Transactions</span>
+            <span class="kpi-value" id="kpi-total">0</span>
+            <span class="kpi-trend up"><i class="fa-solid fa-arrow-trend-up"></i> +12.4%</span>
+          </div>
+        </div>
+        <div class="kpi-card" data-color="red">
+          <div class="kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Fraud Detected</span>
+            <span class="kpi-value" id="kpi-fraud">0</span>
+            <span class="kpi-trend down"><i class="fa-solid fa-arrow-trend-down"></i> -3.2%</span>
+          </div>
+        </div>
+        <div class="kpi-card" data-color="purple">
+          <div class="kpi-icon"><i class="fa-solid fa-users"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Active Users</span>
+            <span class="kpi-value" id="kpi-users">0</span>
+            <span class="kpi-trend up"><i class="fa-solid fa-arrow-trend-up"></i> +5.8%</span>
+          </div>
+        </div>
+        <div class="kpi-card" data-color="green">
+          <div class="kpi-icon"><i class="fa-solid fa-shield-check"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Money Saved</span>
+            <span class="kpi-value" id="kpi-saved">$0</span>
+            <span class="kpi-trend up"><i class="fa-solid fa-arrow-trend-up"></i> +18.7%</span>
+          </div>
+        </div>
+        <div class="kpi-card" data-color="orange">
+          <div class="kpi-icon"><i class="fa-solid fa-fire"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">High-Risk Txns</span>
+            <span class="kpi-value" id="kpi-risk">0</span>
+            <span class="kpi-trend down"><i class="fa-solid fa-arrow-trend-down"></i> -1.1%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FRAUD METER + LIVE ALERTS ROW -->
+      <div class="mid-row">
+        <!-- Fraud Meter -->
+        <div class="glass-card fraud-meter-card">
+          <div class="card-header"><span>AI Fraud Risk Meter</span><span class="live-badge">LIVE</span></div>
+          <div class="meter-wrap">
+            <canvas id="meterCanvas" width="300" height="180"></canvas>
+            <div class="meter-center">
+              <span class="meter-pct" id="meterPct">0%</span>
+              <span class="meter-label" id="meterLabel">SAFE</span>
+            </div>
+          </div>
+          <div class="ai-engine-box">
+            <div class="ai-row"><span>AI Confidence</span><span class="ai-val" id="aiConf">—</span></div>
+            <div class="ai-row"><span>Risk Class</span><span class="ai-val" id="aiClass">—</span></div>
+            <div class="ai-row"><span>Recommended Action</span><span class="ai-val" id="aiAction">—</span></div>
+          </div>
+        </div>
+
+        <!-- Live Alerts -->
+        <div class="glass-card alerts-card" id="alertsCard">
+          <div class="card-header"><span>Live Fraud Alerts</span><span class="live-badge pulse">LIVE</span></div>
+          <div class="alerts-scroll" id="alertsScroll"></div>
+        </div>
+      </div>
+
+      <!-- CHARTS ROW 1 -->
+      <div class="charts-row">
+        <div class="glass-card chart-card">
+          <div class="card-header"><span>Fraud vs Safe</span></div>
+          <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
+        </div>
+        <div class="glass-card chart-card chart-wide">
+          <div class="card-header"><span>Fraud Trends — 30 Days</span></div>
+          <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- CHARTS ROW 2 -->
+      <div class="charts-row">
+        <div class="glass-card chart-card">
+          <div class="card-header"><span>Fraud by Region</span></div>
+          <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+        </div>
+        <div class="glass-card chart-card">
+          <div class="card-header"><span>User Activity</span></div>
+          <div class="chart-wrap"><canvas id="areaChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- HEATMAP + NETWORK -->
+      <div class="charts-row">
+        <div class="glass-card chart-card">
+          <div class="card-header"><span>Fraud Heatmap</span></div>
+          <canvas id="heatmapCanvas" width="500" height="260"></canvas>
+        </div>
+        <div class="glass-card chart-card">
+          <div class="card-header"><span>Fraud Network Graph</span></div>
+          <canvas id="networkCanvas" width="500" height="260"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!--  SECTION: TRANSACTIONS                                -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <section class="section hidden" id="section-transactions">
+      <div class="glass-card table-card">
+        <div class="table-toolbar">
+          <div class="table-title">Transaction Monitor <span class="rec-badge" id="recBadge">● LIVE</span></div>
+          <div class="table-controls">
+            <input type="text" id="txnSearch" placeholder="Search transactions…" class="tbl-search"/>
+            <select id="statusFilter" class="tbl-filter">
+              <option value="">All Status</option>
+              <option value="safe">Safe</option>
+              <option value="suspicious">Suspicious</option>
+              <option value="fraud">Fraud</option>
+            </select>
+            <button class="tbl-btn" id="refreshBtn"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="txn-table">
+            <thead>
+              <tr>
+                <th class="sortable" data-col="id">Txn ID <i class="fa-solid fa-sort"></i></th>
+                <th class="sortable" data-col="user">User <i class="fa-solid fa-sort"></i></th>
+                <th class="sortable" data-col="amount">Amount <i class="fa-solid fa-sort"></i></th>
+                <th>Location</th>
+                <th>Device</th>
+                <th>IP Address</th>
+                <th class="sortable" data-col="time">Time <i class="fa-solid fa-sort"></i></th>
+                <th class="sortable" data-col="risk">Risk Score <i class="fa-solid fa-sort"></i></th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="txnBody"></tbody>
+          </table>
+        </div>
+        <div class="table-pagination">
+          <span id="paginationInfo"></span>
+          <div class="pg-btns">
+            <button id="pgPrev"><i class="fa-solid fa-chevron-left"></i></button>
+            <span id="pgNums"></span>
+            <button id="pgNext"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!--  SECTION: FRAUD ALERTS                                -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <section class="section hidden" id="section-alerts">
+      <div class="alerts-page-grid" id="alertsPageGrid"></div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!--  SECTION: ANALYTICS                                   -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <section class="section hidden" id="section-analytics">
+      <div class="charts-row">
+        <div class="glass-card chart-card chart-wide">
+          <div class="card-header"><span>Detection Accuracy Over Time</span></div>
+          <div class="chart-wrap"><canvas id="accuracyChart"></canvas></div>
+        </div>
+      </div>
+      <div class="charts-row">
+        <div class="glass-card chart-card">
+          <div class="card-header"><span>Fraud Category Breakdown</span></div>
+          <div class="chart-wrap"><canvas id="doughnutChart"></canvas></div>
+        </div>
+        <div class="glass-card chart-card">
+          <div class="card-header"><span>Transaction Volume by Hour</span></div>
+          <div class="chart-wrap"><canvas id="hourlyChart"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!--  SECTION: USERS                                       -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <section class="section hidden" id="section-users">
+      <div class="glass-card table-card">
+        <div class="table-toolbar"><div class="table-title">User Risk Registry</div></div>
+        <div class="table-wrap">
+          <table class="txn-table">
+            <thead><tr><th>User ID</th><th>Name</th><th>Email</th><th>Country</th><th>Total Txns</th><th>Risk Score</th><th>Flags</th><th>Status</th></tr></thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!--  SECTION: REPORTS                                     -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <section class="section hidden" id="section-reports">
+      <div class="glass-card reports-card">
+        <div class="card-header"><span>Export Reports</span></div>
+        <div class="reports-grid">
+          <div class="report-item">
+            <i class="fa-solid fa-file-csv report-icon" style="color:var(--cyan)"></i>
+            <div class="report-info"><span>Transaction Log (CSV)</span><span class="report-sub">All transactions with risk scores</span></div>
+            <button class="report-btn" id="exportCsv"><i class="fa-solid fa-download"></i> Export CSV</button>
+          </div>
+          <div class="report-item">
+            <i class="fa-solid fa-file-pdf report-icon" style="color:#ff5e5e"></i>
+            <div class="report-info"><span>Fraud Summary Report (PDF)</span><span class="report-sub">Executive summary with charts</span></div>
+            <button class="report-btn" id="exportPdf"><i class="fa-solid fa-download"></i> Export PDF</button>
+          </div>
+          <div class="report-item">
+            <i class="fa-solid fa-file-excel report-icon" style="color:#4caf82"></i>
+            <div class="report-info"><span>Analytics Workbook (Excel)</span><span class="report-sub">Full analytics with pivot tables</span></div>
+            <button class="report-btn" id="exportXls"><i class="fa-solid fa-download"></i> Export Excel</button>
+          </div>
+          <div class="report-item">
+            <i class="fa-solid fa-rotate report-icon" style="color:var(--purple)"></i>
+            <div class="report-info"><span>Auto-Schedule Reports</span><span class="report-sub">Daily/weekly email delivery</span></div>
+            <button class="report-btn" id="scheduleReport"><i class="fa-solid fa-clock"></i> Schedule</button>
+          </div>
+        </div>
+        <div class="report-toast hidden" id="reportToast"></div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!--  SECTION: SETTINGS                                    -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <section class="section hidden" id="section-settings">
+      <div class="glass-card settings-card">
+        <div class="card-header"><span>Platform Settings</span></div>
+        <div class="settings-list">
+          <div class="setting-row"><span>Real-time Alert Sounds</span><label class="toggle-sw"><input type="checkbox" id="soundToggle" checked/><span class="sw-track"></span></label></div>
+          <div class="setting-row"><span>Auto-refresh Transaction Table</span><label class="toggle-sw"><input type="checkbox" id="autoRefresh" checked/><span class="sw-track"></span></label></div>
+          <div class="setting-row"><span>High-risk Popup Notifications</span><label class="toggle-sw"><input type="checkbox" id="popupNotif" checked/><span class="sw-track"></span></label></div>
+          <div class="setting-row"><span>AI Engine Sensitivity</span>
+            <select class="tbl-filter"><option>High</option><option selected>Medium</option><option>Low</option></select>
+          </div>
+          <div class="setting-row"><span>Fraud Threshold (%)</span>
+            <input type="range" min="10" max="90" value="65" id="thresholdRange" class="range-input"/> <span id="thresholdVal">65%</span>
+          </div>
+          <div class="setting-row"><span>Session Timeout (min)</span>
+            <input type="number" value="30" min="5" max="120" class="num-input"/>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /main-area -->
+</div><!-- /dashboard -->
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  FLOATING AI CHATBOT                                     -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="chat-fab" id="chatFab"><i class="fa-solid fa-robot"></i><span class="fab-badge">AI</span></div>
+<div class="chatbot-panel hidden" id="chatPanel">
+  <div class="chat-header">
+    <span><i class="fa-solid fa-robot"></i> AEGIS AI Assistant</span>
+    <button id="chatClose"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="chat-footer">
+    <div class="chat-suggestions" id="chatSuggestions">
+      <button class="sug-btn" data-cmd="today">Today's frauds</button>
+      <button class="sug-btn" data-cmd="risk">Highest risk users</button>
+      <button class="sug-btn" data-cmd="report">Generate report</button>
+      <button class="sug-btn" data-cmd="suspicious">Suspicious txns</button>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Ask AEGIS AI…"/>
+      <button id="chatSend"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+<!-- Toast notification -->
+<div class="toast-notif hidden" id="toastNotif"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
