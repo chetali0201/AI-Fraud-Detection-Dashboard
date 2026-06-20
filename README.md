@@ -20,7 +20,7 @@ The AI-Powered Fraud Detection Monitoring Dashboard is designed to improve trans
 - 📈 Interactive Charts & Analytics
 - 🌐 Real-Time Updates using Socket.IO
 - 🗄 MongoDB Database Integration
-- 🎨 Futuristic Cybersecurity UI Design
+  
 
 ---
 
